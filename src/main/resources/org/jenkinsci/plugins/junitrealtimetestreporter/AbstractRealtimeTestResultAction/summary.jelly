@@ -45,27 +45,36 @@ THE SOFTWARE.
     <test:test-result/>
 
     <j:set var="testProgress" value="${it.testProgress}" />
-    <j:if test="${testProgress != null}">
-      <div class="build-caption-progress-container">
-        <table class="middle-align">
-          <tbody>
-            <tr>
-              <td>Tests Progress:</td>
-              <td class="build-caption-progress-bar">
-                <table tooltip="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}" style="cursor:pointer" class="progress-bar ${testProgress.style}" title="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}">
-                  <tbody>
-                    <tr>
-                      <td style="width:${testProgress.completedPercentage}%;" class="progress-bar-done"></td>
-                      <td style="width:${testProgress.leftPercentage}%" class="progress-bar-left"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </j:if>
+    <div class="build-caption-progress-container">
+      <table class="middle-align">
+        <tbody>
+          <tr>
+            <td>Tests Progress:</td>
+            <td class="build-caption-progress-bar">
+              <table tooltip="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}" style="cursor:pointer" class="progress-bar ${testProgress.style}" title="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}">
+                <tbody>
+
+                  <j:choose>
+                    <j:when test="${testProgress != null}">
+                      <tr>
+                        <td style="width:${testProgress.completedPercentage}%;" class="progress-bar-done"></td>
+                        <td style="width:${testProgress.leftPercentage}%" class="progress-bar-left"></td>
+                      </tr>
+                    </j:when>
+                    <j:otherwise>
+                      <tr class="unknown">
+                        <td></td>
+                      </tr>
+                    </j:otherwise>
+                  </j:choose>
+
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <j:set var="failedTests" value="${it.failedTests}" />
     <j:if test="${failedTests != null}">
