@@ -49,13 +49,13 @@ public abstract class AbstractRealtimeTestResultAction extends AbstractTestResul
     protected AbstractRealtimeTestResultAction() {}
 
     protected abstract TestResult parse() throws IOException, InterruptedException;
-    
+
     protected abstract TestResult findPreviousTestResult() throws IOException, InterruptedException;
 
     @Override
     public TestResult getResult() {
         // Refresh every 1/100 of a job estimated duration but not more often than every 5 seconds
-        final long threshold = Math.max(5000, run.getEstimatedDuration() / 100);
+        final long threshold = Math.min(Math.max(5000, run.getEstimatedDuration() / 100), 15000);
         // TODO possible improvements:
         // · always run parse in case result == null
         // · run parse regardless of cache if result.getTotalCount() == 0
@@ -68,7 +68,7 @@ public abstract class AbstractRealtimeTestResultAction extends AbstractTestResul
         	if (updated == 0) {
         		previousResult = findPreviousTestResult();
         	}
-        	
+
             final long started = System.currentTimeMillis(); // TODO use nanoTime
             // TODO this can block on Remoting and hang the UI; need to refresh results asynchronously
             result = parse();
@@ -122,11 +122,11 @@ public abstract class AbstractRealtimeTestResultAction extends AbstractTestResul
         }
         return new TestResult();
     }
-    
+
     public TestProgress getTestProgress() {
     	return progress;
     }
-    
+
     static void saveBuild(Run<?, ?> build) {
         try {
             build.save();

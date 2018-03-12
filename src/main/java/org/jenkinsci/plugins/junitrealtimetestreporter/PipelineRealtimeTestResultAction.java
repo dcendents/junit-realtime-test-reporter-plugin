@@ -36,11 +36,19 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.jenkinsci.plugins.workflow.FilePathUtils;
+import org.jenkinsci.plugins.workflow.actions.LabelAction;
+import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
 import org.jenkinsci.plugins.workflow.flow.FlowExecution;
 import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.graphanalysis.DepthFirstScanner;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
+
+import com.google.common.base.Predicate;
 
 public class PipelineRealtimeTestResultAction extends AbstractRealtimeTestResultAction {
 
@@ -95,26 +103,51 @@ public class PipelineRealtimeTestResultAction extends AbstractRealtimeTestResult
 		FlowNode node = context.get(FlowNode.class);
 
 		List<FlowNode> enclosingBlocks = JUnitResultsStepExecution.getEnclosingStagesAndParallels(node);
-		String stageId = !enclosingBlocks.isEmpty() ? enclosingBlocks.get(0).getId() : null;
-		
-		return findPreviousTestResult(run, stageId);
+		List<String> blockNames = JUnitResultsStepExecution.getEnclosingBlockNames(enclosingBlocks);
+		String blockName = !blockNames.isEmpty() ? blockNames.get(0) : null;
+
+		return findPreviousTestResult(run, blockName);
 	}
 
-	private static TestResult findPreviousTestResult(Run<?, ?> build, final String stageId) {
+	private static TestResult findPreviousTestResult(Run<?, ?> build, final String blockName) {
 		TestResult tr = findPreviousTestResult(build);
 		if (tr != null) {
 			Run<?, ?> prevRun = tr.getRun();
-			if (prevRun instanceof FlowExecutionOwner.Executable && stageId != null) {
-				FlowExecutionOwner owner = ((FlowExecutionOwner.Executable) prevRun).asFlowExecutionOwner();
-				if (owner != null) {
-					FlowExecution execution = owner.getOrNull();
-					if (execution != null) {
-						tr = ((hudson.tasks.junit.TestResult) tr).getResultForPipelineBlock(stageId);
-					}
-				}
-			}
+	        if (prevRun instanceof FlowExecutionOwner.Executable && blockName != null) {
+	            FlowExecutionOwner owner = ((FlowExecutionOwner.Executable)prevRun).asFlowExecutionOwner();
+	            if (owner != null) {
+	                FlowExecution execution = owner.getOrNull();
+	                if (execution != null) {
+	                    DepthFirstScanner scanner = new DepthFirstScanner();
+	                    FlowNode stageId = scanner.findFirstMatch(execution, new BlockNamePredicate(blockName));
+	                    if (stageId != null) {
+	                        tr = ((hudson.tasks.junit.TestResult) tr).getResultForPipelineBlock(stageId.getId());
+	                    } else {
+	                    	tr = null;
+	                    }
+	                }
+	            }
+	        }
 		}
 		return tr;
 	}
+
+    private static class BlockNamePredicate implements Predicate<FlowNode> {
+        private final String blockName;
+        public BlockNamePredicate(@Nonnull String blockName) {
+            this.blockName = blockName;
+        }
+        @Override
+        public boolean apply(@Nullable FlowNode input) {
+            if (input != null) {
+                LabelAction labelAction = input.getPersistentAction(LabelAction.class);
+                if (labelAction != null && labelAction instanceof ThreadNameAction) {
+                	return blockName.equals(((ThreadNameAction) labelAction).getThreadName());
+                }
+                return labelAction != null && blockName.equals(labelAction.getDisplayName());
+            }
+            return false;
+        }
+    }
 
 }

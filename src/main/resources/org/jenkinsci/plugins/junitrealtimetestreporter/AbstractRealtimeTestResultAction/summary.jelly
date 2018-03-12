@@ -43,7 +43,7 @@ THE SOFTWARE.
     <a href="${it.urlName}/">${it.displayName}</a>
     <st:nbsp/>
     <test:test-result/>
-	
+
     <j:set var="testProgress" value="${it.testProgress}" />
     <j:if test="${testProgress != null}">
       <div class="build-caption-progress-container">
@@ -52,7 +52,7 @@ THE SOFTWARE.
             <tr>
               <td>Tests Progress:</td>
               <td class="build-caption-progress-bar">
-                <table tooltip="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}" style="cursor:pointer" class="progress-bar " title="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}">
+                <table tooltip="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}" style="cursor:pointer" class="progress-bar ${testProgress.style}" title="Completed ${testProgress.completedTests}/${testProgress.expectedTests} tests &lt;br /&gt; Estimated remaining time: ${testProgress.estimatedRemainingTime}">
                   <tbody>
                     <tr>
                       <td style="width:${testProgress.completedPercentage}%;" class="progress-bar-done"></td>
@@ -66,7 +66,7 @@ THE SOFTWARE.
         </table>
       </div>
     </j:if>
-	
+
     <j:set var="failedTests" value="${it.failedTests}" />
     <j:if test="${failedTests != null}">
       <j:set var="failedIterator" value="${failedTests.iterator()}" />
