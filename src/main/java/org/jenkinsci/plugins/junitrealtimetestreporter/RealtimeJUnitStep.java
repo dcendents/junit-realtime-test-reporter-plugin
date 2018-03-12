@@ -138,7 +138,7 @@ public class RealtimeJUnitStep extends Step {
         public boolean start() throws Exception {
             Run<?, ?> r = getContext().get(Run.class);
             String id = getContext().get(FlowNode.class).getId();
-            r.addAction(new PipelineRealtimeTestResultAction(id, getContext().get(FilePath.class), archiver.isKeepLongStdio(), archiver.getTestResults()));
+            r.addAction(new PipelineRealtimeTestResultAction(id, getContext(), getContext().get(FilePath.class), archiver.isKeepLongStdio(), archiver.getTestResults()));
             AbstractRealtimeTestResultAction.saveBuild(r);
             getContext().newBodyInvoker().withCallback(new Callback(id, archiver)).start();
             return false;

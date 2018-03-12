@@ -102,6 +102,11 @@ public class RealtimeTestResultAction extends AbstractRealtimeTestResultAction {
     private static AbstractProject<?, ?> getProject(AbstractBuild<?, ?> build) {
         return build.getRootBuild().getParent();
     }
+    
+	@Override
+	protected TestResult findPreviousTestResult() throws IOException, InterruptedException {
+		return findPreviousTestResult(run);
+	}
 
     /*package*/ static void detachFrom(final AbstractBuild<?, ?> build) {
 
