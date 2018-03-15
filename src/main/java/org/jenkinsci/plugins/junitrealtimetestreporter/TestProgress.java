@@ -25,12 +25,20 @@ public class TestProgress {
 		return String.format("%d sec", seconds);
 	}
 
-	public int getCompletedPercentage() {
+	public int getCompletedTestsPercentage() {
 		return Math.min((int) Math.floor((double) getCompletedTests() / (double) getExpectedTests() * 100d), 100);
 	}
 
-	public int getLeftPercentage() {
-		return 100 - getCompletedPercentage();
+	public int getTestsLeftPercentage() {
+		return 100 - getCompletedTestsPercentage();
+	}
+
+	public int getCompletedTimePercentage() {
+		return Math.min((int) Math.floor((double) getCompletedTime() / (double) getExpectedTime() * 100d), 100);
+	}
+
+	public int getTimeLeftPercentage() {
+		return 100 - getCompletedTimePercentage();
 	}
 
 	public int getCompletedTests() {
@@ -39,6 +47,14 @@ public class TestProgress {
 
 	public int getExpectedTests() {
 		return previousResult.getTotalCount();
+	}
+
+	public float getCompletedTime() {
+		return result.getDuration();
+	}
+
+	public float getExpectedTime() {
+		return previousResult.getDuration();
 	}
 
 	public String getStyle() {

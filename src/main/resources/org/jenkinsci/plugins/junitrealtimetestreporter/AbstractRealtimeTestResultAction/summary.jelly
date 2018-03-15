@@ -57,8 +57,8 @@ THE SOFTWARE.
                   <j:choose>
                     <j:when test="${testProgress != null}">
                       <tr>
-                        <td style="width:${testProgress.completedPercentage}%;" class="progress-bar-done"></td>
-                        <td style="width:${testProgress.leftPercentage}%" class="progress-bar-left"></td>
+                        <td style="width:${testProgress.completedTestsPercentage}%;" class="progress-bar-done"></td>
+                        <td style="width:${testProgress.testsLeftPercentage}%" class="progress-bar-left"></td>
                       </tr>
                     </j:when>
                     <j:otherwise>
