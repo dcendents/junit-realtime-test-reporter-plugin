@@ -30,11 +30,7 @@ import hudson.tasks.junit.TestResultAction;
 import java.util.Collections;
 import java.util.logging.Level;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.jenkinsci.plugins.workflow.actions.LabelAction;
-import org.jenkinsci.plugins.workflow.actions.ThreadNameAction;
+import org.jenkinsci.plugins.junitrealtimetestreporter.PipelineRealtimeTestResultAction.BlockNamePredicate;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.flow.FlowExecution;
 import org.jenkinsci.plugins.workflow.flow.FlowExecutionOwner;
@@ -52,8 +48,6 @@ import org.junit.runners.model.Statement;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.LoggerRule;
 import org.jvnet.hudson.test.RestartableJenkinsRule;
-
-import com.google.common.base.Predicate;
 
 public class RealtimeJUnitStepTest {
 
@@ -213,17 +207,17 @@ public class RealtimeJUnitStepTest {
                 assertEquals(4, a.getTotalCount());
                 assertEquals(1, a.getFailCount());
                 assertEquals(Collections.emptyList(), b1.getActions(AbstractRealtimeTestResultAction.class));
-                
+
                 FlowExecutionOwner owner = b1.asFlowExecutionOwner();
                 FlowExecution execution = owner.getOrNull();
                 DepthFirstScanner scanner = new DepthFirstScanner();
-                
+
                 FlowNode stage1Id = scanner.findFirstMatch(execution, new BlockNamePredicate("stage1"));
                 TestResult stage1Results = a.getResult().getResultForPipelineBlock(stage1Id.getId());
                 assertNotNull(stage1Results);
                 assertEquals(2, stage1Results.getTotalCount());
                 assertEquals(0, stage1Results.getFailCount());
-                
+
                 FlowNode stage2Id = scanner.findFirstMatch(execution, new BlockNamePredicate("stage2"));
                 TestResult stage2Results = a.getResult().getResultForPipelineBlock(stage2Id.getId());
                 assertNotNull(stage2Results);
@@ -233,23 +227,6 @@ public class RealtimeJUnitStepTest {
         });
     }
 
-    private static class BlockNamePredicate implements Predicate<FlowNode> {
-        private final String blockName;
-        public BlockNamePredicate(@Nonnull String blockName) {
-            this.blockName = blockName;
-        }
-        @Override
-        public boolean apply(@Nullable FlowNode input) {
-            if (input != null) {
-                LabelAction labelAction = input.getPersistentAction(LabelAction.class);
-                if (labelAction != null && labelAction instanceof ThreadNameAction) {
-                	return blockName.equals(((ThreadNameAction) labelAction).getThreadName());
-                }
-                return labelAction != null && blockName.equals(labelAction.getDisplayName());
-            }
-            return false;
-        }
-    }
     // TODO test distinct parallel / repeated archiving
 
 }

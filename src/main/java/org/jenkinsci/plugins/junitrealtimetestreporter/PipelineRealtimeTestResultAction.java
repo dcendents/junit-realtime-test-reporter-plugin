@@ -61,7 +61,7 @@ public class PipelineRealtimeTestResultAction extends AbstractRealtimeTestResult
 	private final boolean keepLongStdio;
 	private final String glob;
 
-	PipelineRealtimeTestResultAction(String id, StepContext context, FilePath ws, boolean keepLongStdio, String glob) {
+	/*package*/ PipelineRealtimeTestResultAction(String id, StepContext context, FilePath ws, boolean keepLongStdio, String glob) {
 		this.id = id;
 		this.context = context;
 		node = FilePathUtils.getNodeName(ws);
@@ -132,7 +132,7 @@ public class PipelineRealtimeTestResultAction extends AbstractRealtimeTestResult
 		return tr;
 	}
 
-    private static class BlockNamePredicate implements Predicate<FlowNode> {
+	/*package*/ static class BlockNamePredicate implements Predicate<FlowNode> {
         private final String blockName;
         public BlockNamePredicate(@Nonnull String blockName) {
             this.blockName = blockName;
