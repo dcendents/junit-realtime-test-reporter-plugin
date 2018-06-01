@@ -4,7 +4,7 @@ import hudson.tasks.junit.TestResult;
 
 public class TestProgress {
 
-	private TestResult previousResult;
+    private TestResult previousResult;
     private TestResult result;
 
 	public TestProgress(TestResult previousResult, TestResult result) {
@@ -26,6 +26,10 @@ public class TestProgress {
 	}
 
 	public int getCompletedTestsPercentage() {
+		if ( getExpectedTests() == 0) {
+			return 100;
+		}
+
 		return Math.min((int) Math.floor((double) getCompletedTests() / (double) getExpectedTests() * 100d), 100);
 	}
 
@@ -34,6 +38,10 @@ public class TestProgress {
 	}
 
 	public int getCompletedTimePercentage() {
+		if ( getExpectedTime() == 0) {
+			return 100;
+		}
+
 		return Math.min((int) Math.floor((double) getCompletedTime() / (double) getExpectedTime() * 100d), 100);
 	}
 

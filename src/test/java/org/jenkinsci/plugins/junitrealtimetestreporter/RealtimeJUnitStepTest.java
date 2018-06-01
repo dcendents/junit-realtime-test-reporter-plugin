@@ -227,6 +227,77 @@ public class RealtimeJUnitStepTest {
         });
     }
 
+    @Test
+    public void testProgress() {
+        rr.addStep(new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                WorkflowJob p = rr.j.jenkins.createProject(WorkflowJob.class, "p");
+                p.setDefinition(new CpsFlowDefinition(
+                    "node {\n" +
+                    "  realtimeJUnit('*.xml') {\n" +
+                    "    semaphore 'pre'\n" +
+                    "    writeFile text: '''<testsuite name='a' time='4'><testcase name='a1' time='1'/><testcase name='a2' time='3'/></testsuite>''', file: 'a.xml'\n" +
+                    "    semaphore 'mid'\n" +
+                    "    writeFile text: '''<testsuite name='b' time='6'><testcase name='b1' time='2'/><testcase name='b2' time='4'><error>b2 failed</error></testcase></testsuite>''', file: 'b.xml'\n" +
+                    "    semaphore 'post'\n" +
+                    "  }\n" +
+                    "  deleteDir()\n" +
+                    "}; semaphore 'final'", true));
+                SemaphoreStep.success("pre/1", null);
+                SemaphoreStep.success("mid/1", null);
+                SemaphoreStep.success("post/1", null);
+                SemaphoreStep.success("final/1", null);
+                p.scheduleBuild2(0).get();
+
+                WorkflowRun b2 = p.scheduleBuild2(0).waitForStart();
+
+                SemaphoreStep.waitForStart("pre/2", b2);
+                AbstractRealtimeTestResultAction rta = b2.getAction(AbstractRealtimeTestResultAction.class);
+                assertNotNull(rta);
+                TestResult result = rta.getResult();
+                assertNull(result);
+                TestProgress progress = rta.getTestProgress();
+                assertNull(progress);
+                SemaphoreStep.success("pre/2", null);
+
+                SemaphoreStep.waitForStart("mid/2", b2);
+                result = rta.getResult();
+                assertNotNull(result);
+                progress = rta.getTestProgress();
+                assertNotNull(progress);
+                assertEquals(4, progress.getExpectedTests());
+                assertEquals(2, progress.getCompletedTests());
+                assertEquals(50, progress.getCompletedTestsPercentage());
+                assertEquals(50, progress.getTestsLeftPercentage());
+                assertEquals(10, progress.getExpectedTime(), 0);
+                assertEquals(4, progress.getCompletedTime(), 0);
+                assertEquals(40, progress.getCompletedTimePercentage());
+                assertEquals(60, progress.getTimeLeftPercentage());
+                assertEquals("6 sec", progress.getEstimatedRemainingTime());
+                SemaphoreStep.success("mid/2", null);
+
+                SemaphoreStep.waitForStart("post/2", b2);
+                result = rta.getResult();
+                assertNotNull(result);
+                progress = rta.getTestProgress();
+                assertNotNull(progress);
+                assertEquals(4, progress.getExpectedTests());
+                assertEquals(4, progress.getCompletedTests());
+                assertEquals(100, progress.getCompletedTestsPercentage());
+                assertEquals(0, progress.getTestsLeftPercentage());
+                assertEquals(10, progress.getExpectedTime(), 0);
+                assertEquals(10, progress.getCompletedTime(), 0);
+                assertEquals(100, progress.getCompletedTimePercentage());
+                assertEquals(0, progress.getTimeLeftPercentage());
+                assertEquals("0 sec", progress.getEstimatedRemainingTime());
+                SemaphoreStep.success("post/2", null);
+
+                SemaphoreStep.success("final/2", null);
+            }
+        });
+    }
+
     // TODO test distinct parallel / repeated archiving
 
 }
