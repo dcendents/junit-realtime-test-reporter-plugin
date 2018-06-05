@@ -60,14 +60,18 @@ public class PipelineRealtimeTestResultAction extends AbstractRealtimeTestResult
 	private final String workspace;
 	private final boolean keepLongStdio;
 	private final String glob;
+    private final Integer minimumParseInterval;
+    private final Integer maximumParseInterval;
 
-	/*package*/ PipelineRealtimeTestResultAction(String id, StepContext context, FilePath ws, boolean keepLongStdio, String glob) {
+	/*package*/ PipelineRealtimeTestResultAction(String id, StepContext context, FilePath ws, boolean keepLongStdio, String glob, Integer minimumParseInterval, Integer maximumParseInterval) {
 		this.id = id;
 		this.context = context;
 		node = FilePathUtils.getNodeName(ws);
 		workspace = ws.getRemote();
 		this.keepLongStdio = keepLongStdio;
 		this.glob = glob;
+		this.minimumParseInterval = minimumParseInterval;
+		this.maximumParseInterval = maximumParseInterval;
 	}
 
 	@Override
@@ -85,6 +89,16 @@ public class PipelineRealtimeTestResultAction extends AbstractRealtimeTestResult
 	public String getUrlName() {
 		return "realtimeTestReport-" + id;
 	}
+
+	@Override
+    protected int getMinimumParseInterval() {
+    	return minimumParseInterval != null ? minimumParseInterval.intValue() : super.getMinimumParseInterval();
+    }
+
+	@Override
+    protected int getMaximumParseInterval() {
+    	return maximumParseInterval != null ? maximumParseInterval.intValue() : super.getMaximumParseInterval();
+    }
 
 	@Override
 	protected TestResult parse() throws IOException, InterruptedException {

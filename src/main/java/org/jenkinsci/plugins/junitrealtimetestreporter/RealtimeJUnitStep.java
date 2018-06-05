@@ -68,12 +68,14 @@ public class RealtimeJUnitStep extends Step {
     private List<TestDataPublisher> testDataPublishers;
     private Double healthScaleFactor;
     private boolean allowEmptyResults;
+    private Integer minimumParseInterval;
+    private Integer maximumParseInterval;
 
     @DataBoundConstructor
     public RealtimeJUnitStep(String testResults) {
         this.testResults = testResults;
     }
-    
+
     public String getTestResults() {
         return testResults;
     }
@@ -115,30 +117,52 @@ public class RealtimeJUnitStep extends Step {
         this.allowEmptyResults = allowEmptyResults;
     }
 
-    @Override
+    public Integer getMinimumParseInterval() {
+		return minimumParseInterval;
+	}
+
+    @DataBoundSetter
+	public void setMinimumParseInterval(Integer minimumParseInterval) {
+		this.minimumParseInterval = minimumParseInterval;
+	}
+
+	public Integer getMaximumParseInterval() {
+		return maximumParseInterval;
+	}
+
+    @DataBoundSetter
+	public void setMaximumParseInterval(Integer maximumParseInterval) {
+		this.maximumParseInterval = maximumParseInterval;
+	}
+
+	@Override
     public StepExecution start(StepContext context) throws Exception {
         JUnitResultArchiver delegate = new JUnitResultArchiver(testResults);
         delegate.setAllowEmptyResults(allowEmptyResults);
         delegate.setHealthScaleFactor(getHealthScaleFactor());
         delegate.setKeepLongStdio(keepLongStdio);
         delegate.setTestDataPublishers(getTestDataPublishers());
-        return new Execution(context, delegate);
+        return new Execution(context, delegate, minimumParseInterval, maximumParseInterval);
     }
 
     static class Execution extends StepExecution {
 
         private final JUnitResultArchiver archiver;
+        private final Integer minimumParseInterval;
+        private final Integer maximumParseInterval;
 
-        Execution(StepContext context, JUnitResultArchiver archiver) {
+        Execution(StepContext context, JUnitResultArchiver archiver, Integer minimumParseInterval, Integer maximumParseInterval) {
             super(context);
             this.archiver = archiver;
+            this.minimumParseInterval = minimumParseInterval;
+            this.maximumParseInterval = maximumParseInterval;
         }
 
         @Override
         public boolean start() throws Exception {
             Run<?, ?> r = getContext().get(Run.class);
             String id = getContext().get(FlowNode.class).getId();
-            r.addAction(new PipelineRealtimeTestResultAction(id, getContext(), getContext().get(FilePath.class), archiver.isKeepLongStdio(), archiver.getTestResults()));
+            r.addAction(new PipelineRealtimeTestResultAction(id, getContext(), getContext().get(FilePath.class), archiver.isKeepLongStdio(), archiver.getTestResults(), minimumParseInterval, maximumParseInterval));
             AbstractRealtimeTestResultAction.saveBuild(r);
             getContext().newBodyInvoker().withCallback(new Callback(id, archiver)).start();
             return false;
