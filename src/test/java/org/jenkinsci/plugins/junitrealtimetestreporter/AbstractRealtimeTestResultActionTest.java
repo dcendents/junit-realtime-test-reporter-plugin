@@ -26,10 +26,7 @@ package org.jenkinsci.plugins.junitrealtimetestreporter;
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
 
-import java.lang.reflect.Field;
-
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -42,19 +39,11 @@ import hudson.tasks.junit.TestResult;
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractRealtimeTestResultActionTest  {
 
-	private static Field updatedField;
-
 	@Spy
 	private AbstractRealtimeTestResultAction action;
 
 	@Mock
 	private Run<?, ?> run;
-
-	@BeforeClass
-	public static void initClass() throws Exception {
-		updatedField = AbstractRealtimeTestResultAction.class.getDeclaredField("updated");
-		updatedField.setAccessible(true);
-	}
 
 	@Before
 	public void init() throws Exception {
@@ -66,14 +55,12 @@ public class AbstractRealtimeTestResultActionTest  {
 	@Test
 	public void getPreviousResultsOnlyOnce() throws Exception {
 		// given
+		given(action.getMinimumParseInterval()).willReturn(0);
 		int noTimes = 3;
 
 		// when
 		for( int i = 0; i < noTimes; i++) {
 			action.getResult();
-
-			// reset updated value to speed up the test
-			updatedField.set(action, System.currentTimeMillis() - 15000);
 		}
 
 		//then
